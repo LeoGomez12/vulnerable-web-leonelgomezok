@@ -58,7 +58,7 @@ Donde se tiene que remplazar los siguientes datos
 ```
           heroku_api_key: ${{secrets.HEROKU_API_KEY}}
           heroku_app_name: "app-vulnerable2022" #Nombre de la app, creado anteriormente
-          heroku_email: "roxsrossve@gmail.com"
+          heroku_email: "xxx@gmail.com"
           remote_branch: "master"
           usedocker: true
 ``` 
@@ -66,4 +66,3 @@ Ahora tienen que integrar herramientas de seguridad dentro del CICD
 
 ### Manos a la Obra
 
-Demostración del funcionamiento de la aplicación https://app-vulnerable2022.herokuapp.com/
