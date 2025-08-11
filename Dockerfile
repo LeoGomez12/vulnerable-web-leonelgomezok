@@ -1,9 +1,12 @@
-FROM node:8
+FROM node:10
 
+WORKDIR /app
+
+COPY package*.json ./
+
+RUN npm install
 
 COPY . .
-ADD server.js package*.json ./
-RUN npm install
 
 EXPOSE 8080
 
