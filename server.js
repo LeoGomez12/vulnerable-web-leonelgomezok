@@ -21,7 +21,7 @@ app.use('/static', express.static(__dirname + '/static'))
 
 //Allow form inputs to be parsed easily
 var bodyParser = require('body-parser')
-app.use(bodyParser.urlencoded())
+app.use(bodyParser.urlencoded({ extended: true }));
 
 //Create cookie-based sessions for each user
 //httponly is set to false so that js can access them
@@ -30,6 +30,8 @@ var session = require('express-session')
 app.use(session({
     name     : 'sid',
     secret  : 'supersecretsecur3passw0rd',
+    resave: false,
+    saveUninitialized: false,
     cookie : {
         httpOnly: false,
         maxAge: 60000*60*24
@@ -38,8 +40,15 @@ app.use(session({
 
 //This is our rendering engine
 //It can be used to demonstrate forms of xss
-app.engine('.html', exphbs({extname:'.html',partialsDir: __dirname +'/views',defaultLayout:"head"}));
-app.set('views', path.join(__dirname, 'views'))
+const hbs = exphbs.create({
+  extname: '.html',
+  partialsDir: path.join(__dirname, 'views/partials'),
+  defaultLayout: 'head',
+  layoutsDir: path.join(__dirname, 'views/layouts')
+});
+
+app.engine('.html', hbs.engine);
+app.set('views', path.join(__dirname, 'views'));
 app.set('view engine', '.html');
 
 //Run the server
