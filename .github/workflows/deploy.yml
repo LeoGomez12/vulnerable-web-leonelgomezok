@@ -42,11 +42,15 @@ jobs:
       #     SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
       #     SONAR_HOST_URL: ${{ secrets.SONAR_HOST_URL }}
 
+      - name: Install Heroku CLI
+        run: |
+          curl https://cli-assets.heroku.com/install.sh | sh
 
-      - uses: akhileshns/heroku-deploy@v3.12.12
-        with:
-          heroku_api_key: ${{ secrets.HEROKU_API_KEY }}
-          heroku_app_name: "vulnerable-web-leonelgomezok"
-          heroku_email: "leo92gomez@gmail.com"
-          branch: "master"
-          usedocker: true
+      - name: Container login/push/release
+        env:
+          HEROKU_API_KEY: ${{ secrets.HEROKU_API_KEY }}
+        run: |
+          echo $HEROKU_API_KEY | heroku auth:token
+          heroku container:login
+          heroku container:push web -a vulnerable-web-leonelgomezok
+          heroku container:release web -a vulnerable-web-leonelgomezok
