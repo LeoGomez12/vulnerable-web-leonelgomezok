@@ -48,5 +48,5 @@ jobs:
           heroku_api_key: ${{ secrets.HEROKU_API_KEY }}
           heroku_app_name: "vulnerable-web-leonelgomezok"
           heroku_email: "leo92gomez@gmail.com"
-          remote_branch: "master"
+          branch: "master"
           usedocker: true
