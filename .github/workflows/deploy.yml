@@ -79,10 +79,16 @@ jobs:
       #DAST
       - name: Run OWASP ZAP Baseline via Docker
         run: |
+          # Carpeta local para el reporte
+          mkdir -p zap-output
+          # Ejecutar ZAP con el working dir correcto
           docker run --rm -t \
-            -v "$PWD:/zap/wrk/:rw" \
+            -v "$PWD/zap-output:/zap/wrk/:rw" \
+            -w /zap/wrk \
             ghcr.io/zaproxy/zaproxy:stable \
-            zap-baseline.py -t "$TARGET_URL" -a -r zap-report.html     
+            zap-baseline.py -t "$TARGET_URL" -a -r zap-report.html
+          # Mostrar dónde quedó el archivo
+          ls -l zap-output    
 
       - name: Upload ZAP report
         uses: actions/upload-artifact@v4
