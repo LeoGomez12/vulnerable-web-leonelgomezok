@@ -7,25 +7,27 @@ on:
 
 jobs:
   deploy-heroku:
-    name: Deploy Heroku
+    name: Deploy Heroku + SAST + DAST
     runs-on: ubuntu-latest
-    steps:
 
+    env:
+      HEROKU_APP_NAME: vulnerable-web-leonelgomezok
+      TARGET_URL: ${{ secrets.APP_URL || 'https://vulnerable-web-leonelgomezok.herokuapp.com' }}
+
+    steps:
       - uses: actions/checkout@v3
         with:
-          fetch-depth: 0  # Necesario para SonarQube.
-
+          fetch-depth: 0  
 
       - name: Setup Node.js
         uses: actions/setup-node@v3
         with:
           node-version: '18'
 
-
       - name: Install dependencies
         run: npm install
 
-
+      #SAST
       - name: SonarQube Scan
         uses: sonarsource/sonarqube-scan-action@v2
         with:
@@ -34,7 +36,6 @@ jobs:
         env:
           SONAR_HOST_URL: ${{ secrets.SONAR_HOST_URL }}
 
-
       - name: SonarQube Quality Gate Check
         uses: sonarsource/sonarqube-quality-gate-action@master
         timeout-minutes: 5
@@ -42,6 +43,7 @@ jobs:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
           SONAR_HOST_URL: ${{ secrets.SONAR_HOST_URL }}
 
+      #Deploy
       - name: Install Heroku CLI
         run: |
           curl https://cli-assets.heroku.com/install.sh | sh
@@ -50,7 +52,35 @@ jobs:
         env:
           HEROKU_API_KEY: ${{ secrets.HEROKU_API_KEY }}
         run: |
-          echo $HEROKU_API_KEY | heroku auth:token
+          heroku auth:token >/dev/null 2>&1 || true
           heroku container:login
-          heroku container:push web -a vulnerable-web-leonelgomezok
-          heroku container:release web -a vulnerable-web-leonelgomezok
+          heroku container:push web -a $HEROKU_APP_NAME
+          heroku container:release web -a $HEROKU_APP_NAME
+
+      #Espera de la APP
+      - name: Wait for app to be ready
+        run: |
+          echo "Waiting for $TARGET_URL ..."
+          for i in {1..30}; do
+            if curl -sSf -o /dev/null "$TARGET_URL"; then
+              echo "App is up!"
+              exit 0
+            fi
+            sleep 5
+          done
+          echo "App did not become ready in time"
+          exit 1
+
+        #DAST
+      - name: OWASP ZAP Baseline Scan
+        uses: zaproxy/action-baseline@v0.10.0
+        with:
+          target: ${{ env.TARGET_URL }}
+          cmd_options: "-a"
+          fail_action: false  
+
+      - name: Upload ZAP report
+        uses: actions/upload-artifact@v3
+        with:
+          name: zap-report
+          path: zap-report.html
