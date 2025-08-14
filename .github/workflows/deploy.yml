@@ -81,13 +81,15 @@ jobs:
         run: |
           # Carpeta local para el reporte
           mkdir -p zap-output
+          # Dar permisos para que el usuario 'zap' dentro del contenedor pueda escribir
+          chmod 777 zap-output
           # Ejecutar ZAP con el working dir correcto
           docker run --rm -t \
-            -v "$PWD/zap-output:/zap/wrk/:rw" \
+            -v "$PWD/zap-output:/zap/wrk" \
             -w /zap/wrk \
             ghcr.io/zaproxy/zaproxy:stable \
             zap-baseline.py -t "$TARGET_URL" -a -r zap-report.html
-          # Mostrar dónde quedó el archivo
+          # Mostrar el resultado
           ls -l zap-output    
 
       - name: Upload ZAP report
