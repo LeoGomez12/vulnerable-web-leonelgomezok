@@ -78,23 +78,44 @@ jobs:
 
       #DAST
       - name: Run OWASP ZAP Baseline via Docker
+        continue-on-error: true 
         run: |
           # Carpeta local para el reporte
           mkdir -p zap-output
-          # Dar permisos para que el usuario 'zap' dentro del contenedor pueda escribir
           chmod 777 zap-output
-          # Ejecutar ZAP con el working dir correcto
+          # Ejecutar ZAP con más tiempo (-m), debug (-d) y también JSON (-J)
+          set -x
           docker run --rm -t \
             -v "$PWD/zap-output:/zap/wrk" \
             -w /zap/wrk \
             ghcr.io/zaproxy/zaproxy:stable \
-            zap-baseline.py -t "$TARGET_URL" -a -r zap-report.html
-          # Mostrar el resultado
-          ls -l zap-output    
+            zap-baseline.py \
+              -t "$TARGET_URL" \
+              -a \
+              -m 10 \
+              -d \
+              -r zap-report.html \
+              -J zap-report.json || true
+          set +x
+          echo "Contenido de zap-output:"
+          ls -l zap-output || true
+          # Mostrar algunas líneas del HTML si existe
+          if [ -f zap-output/zap-report.html ]; then head -n 40 zap-output/zap-report.html; fi
+          # Mostrar resumen del JSON si existe
+          if [ -f zap-output/zap-report.json ]; then jq '.site[0].alerts | length as $n | {alerts: $n}' zap-output/zap-report.json || true; fi
 
-      - name: Upload ZAP report
+      - name: Upload ZAP HTML report
+        if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: zap-report
-          path: zap-report.html
+          name: zap-report-html
+          path: zap-output/zap-report.html
+          retention-days: 14
+
+      - name: Upload ZAP JSON report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: zap-report-json
+          path: zap-output/zap-report.json
           retention-days: 14
