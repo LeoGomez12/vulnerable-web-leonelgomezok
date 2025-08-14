@@ -5,6 +5,11 @@ on:
     branches:
       - master
 
+#Permisos 
+permissions:
+  contents: read
+  checks: write
+
 jobs:
   deploy-heroku:
     name: Deploy Heroku + SAST + DAST
@@ -17,7 +22,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
         with:
-          fetch-depth: 0  
+          fetch-depth: 0
 
       - name: Setup Node.js
         uses: actions/setup-node@v4
@@ -71,17 +76,18 @@ jobs:
           echo "App did not become ready in time"
           exit 1
 
-        #DAST
+      #DAST
       - name: OWASP ZAP Baseline Scan
         uses: zaproxy/action-baseline@v0.10.0
         with:
           target: ${{ env.TARGET_URL }}
           cmd_options: "-a"
-          token: ""
-          fail_action: false  
+          token: ${{ github.token }} 
+          fail_action: false           
 
       - name: Upload ZAP report
         uses: actions/upload-artifact@v4
         with:
           name: zap-report
           path: zap-report.html
+          retention-days: 14
