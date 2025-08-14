@@ -15,12 +15,12 @@ jobs:
       TARGET_URL: ${{ secrets.APP_URL || 'https://vulnerable-web-leonelgomezok.herokuapp.com' }}
 
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
         with:
           fetch-depth: 0  
 
       - name: Setup Node.js
-        uses: actions/setup-node@v3
+        uses: actions/setup-node@v4
         with:
           node-version: '18'
 
@@ -80,7 +80,7 @@ jobs:
           fail_action: false  
 
       - name: Upload ZAP report
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: zap-report
           path: zap-report.html
